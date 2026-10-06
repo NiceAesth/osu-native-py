@@ -3,7 +3,9 @@ from __future__ import annotations
 import ctypes
 import json
 import keyword
+import logging
 import math
+import os
 import re
 from dataclasses import dataclass
 from dataclasses import field
@@ -215,7 +217,23 @@ def render_models(models: list[Model], schema: dict) -> dict[str, str]:
     unknown = set(schema) - {model.name for model in models}
     if unknown:
         raise ValueError(f"Unknown documented models: {sorted(unknown)}")
+
     models = [configure_model(model, schema.get(model.name, {})) for model in models]
+    missing = [
+        f"{model.name}.{item.name}"
+        for model in models
+        for item in model.own_fields
+        if not item.description.strip()
+    ]
+    if missing:
+        message = "Missing field documentation: " + ", ".join(missing)
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            print(
+                f"::warning file=scripts/models.json,title=Missing field documentation::{message}",
+            )
+        else:
+            logging.getLogger(__name__).warning(message)
+
     environment = Environment(
         loader=FileSystemLoader(Path(__file__).with_name("templates")),
         undefined=StrictUndefined,
