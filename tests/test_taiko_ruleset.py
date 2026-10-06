@@ -35,20 +35,20 @@ def test_standard_ruleset():
     perf_calc = create_performance_calculator(ruleset)
     perf_attrs = perf_calc.calculate(ruleset, beatmap, mods, score, diff_attrs)
 
-    if isinstance(diff_attrs, TaikoDifficultyAttributes):
-        assert diff_attrs.star_rating == pytest.approx(5.776751574977793)
-        assert diff_attrs.max_combo == 453
-        assert diff_attrs.mechanical_difficulty == pytest.approx(4.575263019721287)
-        assert diff_attrs.rhythm_difficulty == pytest.approx(1.2003354972271978)
-        assert diff_attrs.reading_difficulty == pytest.approx(0.0011530580293085551)
-        assert diff_attrs.colour_difficulty == pytest.approx(1.3419623398776226)
-        assert diff_attrs.stamina_difficulty == pytest.approx(3.2333006798436643)
-        assert diff_attrs.mono_stamina_factor == pytest.approx(1.8585410552067947e-08, abs=1e-15)
-        assert diff_attrs.consistency_factor == pytest.approx(0.7002259535141709)
-        assert diff_attrs.stamina_top_strains == pytest.approx(125.66323763031251)
+    assert isinstance(diff_attrs, TaikoDifficultyAttributes)
+    assert diff_attrs.star_rating == pytest.approx(5.776751574977793)
+    assert diff_attrs.max_combo == 453
+    assert diff_attrs.mechanical_difficulty == pytest.approx(4.575263019721287)
+    assert diff_attrs.rhythm_difficulty == pytest.approx(1.2003354972271978)
+    assert diff_attrs.reading_difficulty == pytest.approx(0.0011530580293085551)
+    assert diff_attrs.colour_difficulty == pytest.approx(1.3419623398776226)
+    assert diff_attrs.stamina_difficulty == pytest.approx(3.2333006798436643)
+    assert diff_attrs.mono_stamina_factor == pytest.approx(1.8585410552067947e-08, abs=1e-15)
+    assert diff_attrs.consistency_factor == pytest.approx(0.7002259535141709)
+    assert diff_attrs.stamina_top_strains == pytest.approx(125.66323763031251)
 
-    if isinstance(perf_attrs, TaikoPerformanceAttributes):
-        assert perf_attrs.total == pytest.approx(432.0844637877409)
-        assert perf_attrs.difficulty == pytest.approx(235.90400271061765)
-        assert perf_attrs.accuracy == pytest.approx(196.18046107712328)
-        assert perf_attrs.estimated_unstable_rate == pytest.approx(91.33286105656319)
+    assert isinstance(perf_attrs, TaikoPerformanceAttributes)
+    assert perf_attrs.total == pytest.approx(432.0844637877409)
+    assert perf_attrs.difficulty == pytest.approx(235.90400271061765)
+    assert perf_attrs.accuracy == pytest.approx(196.18046107712328)
+    assert perf_attrs.estimated_unstable_rate == pytest.approx(91.33286105656319)

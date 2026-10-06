@@ -36,9 +36,9 @@ def test_standard_ruleset():
     perf_calc = create_performance_calculator(ruleset)
     perf_attrs = perf_calc.calculate(ruleset, beatmap, mods, score, diff_attrs)
 
-    if isinstance(diff_attrs, CatchDifficultyAttributes):
-        assert diff_attrs.star_rating == pytest.approx(7.919885068520697)
-        assert diff_attrs.max_combo == 1909
+    assert isinstance(diff_attrs, CatchDifficultyAttributes)
+    assert diff_attrs.star_rating == pytest.approx(7.919885068520697)
+    assert diff_attrs.max_combo == 1909
 
-    if isinstance(perf_attrs, CatchPerformanceAttributes):
-        assert perf_attrs.total == pytest.approx(830.8499971491217)
+    assert isinstance(perf_attrs, CatchPerformanceAttributes)
+    assert perf_attrs.total == pytest.approx(830.8499971491217)

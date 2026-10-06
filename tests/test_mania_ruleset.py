@@ -39,10 +39,10 @@ def test_standard_ruleset():
     perf_calc = create_performance_calculator(ruleset)
     perf_attrs = perf_calc.calculate(ruleset, beatmap, mods, score, diff_attrs)
 
-    if isinstance(diff_attrs, ManiaDifficultyAttributes):
-        assert diff_attrs.star_rating == pytest.approx(11.627630733008322)
-        assert diff_attrs.max_combo == 24779
+    assert isinstance(diff_attrs, ManiaDifficultyAttributes)
+    assert diff_attrs.star_rating == pytest.approx(11.627630733008322)
+    assert diff_attrs.max_combo == 24779
 
-    if isinstance(perf_attrs, ManiaPerformanceAttributes):
-        assert perf_attrs.total == pytest.approx(1566.2954965275737)
-        assert perf_attrs.difficulty == pytest.approx(1566.2954965275737)
+    assert isinstance(perf_attrs, ManiaPerformanceAttributes)
+    assert perf_attrs.total == pytest.approx(1566.2954965275737)
+    assert perf_attrs.difficulty == pytest.approx(1566.2954965275737)
