@@ -9,7 +9,7 @@ from ctypesgen.options import get_default_options
 from ctypesgen.parser import parse
 from ctypesgen.printer_python import WrapperPrinter
 from ctypesgen.processor import process
-from generate_attributes import generate_attributes
+from generate_models import generate_models
 
 C_TYPES = """\
 typedef unsigned char uint8_t;
@@ -70,7 +70,7 @@ def generate(publish: Path, output: Path) -> None:
     try:
         descriptions = parse(options.headers, options)
         process(descriptions, options)
-        attributes = generate_attributes(descriptions)
+        models = generate_models(descriptions)
         WrapperPrinter(str(temporary), options, descriptions)
     finally:
         logger.removeHandler(handler)
@@ -84,11 +84,12 @@ def generate(publish: Path, output: Path) -> None:
         "from . import BIN_DIR\nadd_library_search_dirs([str(BIN_DIR)])",
     )
     compile(contents, str(output), "exec")
-    attributes_path = output.with_name("attributes.py")
-    compile(attributes, str(attributes_path), "exec")
+    for name, source in models.items():
+        compile(source, str(output.with_name(name)), "exec")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(contents, encoding="utf-8")
-    attributes_path.write_text(attributes, encoding="utf-8")
+    for name, source in models.items():
+        output.with_name(name).write_text(source, encoding="utf-8")
 
 
 def main() -> None:
