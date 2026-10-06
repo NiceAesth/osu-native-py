@@ -56,9 +56,6 @@ jobs:
         if: ${{ matrix.platform == 'linux-arm' }}
         run: dotnet publish osu-native/osu.Native -c Release -r ${{ matrix.platform }} -o build/generated -p:LinkerFlavor=lld -p:StripSymbols=false
 
-      - name: Fix cabinet header
-        run: python scripts/fix_cabinet_header.py
-
       - name: Upload native artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -118,23 +115,9 @@ jobs:
             cp artifacts/native-linux-x64/osu.Native.so src/osu_native_py/native/bin/linux-x64/
           fi
 
-          cp artifacts/native-${{ matrix.platform }}/cabinet.h build/generated/
 
       - name: Generate Python bindings
-        run: |
-          ctypesgen build/generated/cabinet.h \
-            -l osu.Native \
-            -o src/osu_native_py/native/bindings.py \
-            -D "bool=char" \
-            --allow-gnu-c \
-            --no-macro-warnings \
-            --no-gnu-types
-
-      - name: Patch bindings for multi-platform support
-        shell: bash
-        run: |
-          sed -i.bak 's|add_library_search_dirs(\[\])|import os, platform, sys; from pathlib import Path; _m = platform.machine(); _bin_dir = Path(__file__).parent / "bin" / ("win-x64" if sys.platform == "win32" else "osx-arm64" if sys.platform == "darwin" else "linux-arm64" if _m == "aarch64" else "linux-arm" if _m.startswith("arm") else "linux-x64"); add_library_search_dirs([str(_bin_dir)])|' src/osu_native_py/native/bindings.py
-          rm -f src/osu_native_py/native/bindings.py.bak
+        run: python scripts/generate_bindings.py --publish artifacts/native-${{ matrix.platform }}
 
       - name: Build wheel
         run: python tools/build_all_wheels.py
