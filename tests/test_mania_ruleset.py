@@ -19,7 +19,7 @@ BEATMAP_PATH = TEST_DIR / "resources/5107047.osu"
 
 def test_standard_ruleset():
     beatmap = Beatmap.from_file(str(BEATMAP_PATH))
-    ruleset = Ruleset.from_id(2)
+    ruleset = Ruleset.from_id(3)
     mods = ModsCollection.create()
 
     score = ScoreInfo(
