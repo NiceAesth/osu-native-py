@@ -9,6 +9,7 @@ from ctypesgen.options import get_default_options
 from ctypesgen.parser import parse
 from ctypesgen.printer_python import WrapperPrinter
 from ctypesgen.processor import process
+from generate_attributes import generate_attributes
 
 C_TYPES = """\
 typedef unsigned char uint8_t;
@@ -69,6 +70,7 @@ def generate(publish: Path, output: Path) -> None:
     try:
         descriptions = parse(options.headers, options)
         process(descriptions, options)
+        attributes = generate_attributes(descriptions)
         WrapperPrinter(str(temporary), options, descriptions)
     finally:
         logger.removeHandler(handler)
@@ -78,11 +80,15 @@ def generate(publish: Path, output: Path) -> None:
     if contents.count(loader) != 1:
         raise RuntimeError("Unexpected ctypesgen loader output")
     contents = contents.replace(
-        loader, "from . import BIN_DIR\nadd_library_search_dirs([str(BIN_DIR)])"
+        loader,
+        "from . import BIN_DIR\nadd_library_search_dirs([str(BIN_DIR)])",
     )
     compile(contents, str(output), "exec")
+    attributes_path = output.with_name("attributes.py")
+    compile(attributes, str(attributes_path), "exec")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(contents, encoding="utf-8")
+    attributes_path.write_text(attributes, encoding="utf-8")
 
 
 def main() -> None:
