@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from osu_native_py.native import attributes
 from osu_native_py.wrapper.calculators import create_difficulty_calculator
 from osu_native_py.wrapper.calculators import create_performance_calculator
 from osu_native_py.wrapper.objects import Beatmap
@@ -18,41 +17,54 @@ from osu_native_py.wrapper.objects import ScoreInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 RESOURCES = ROOT / "osu-native/osu.Native.Tests/Resources"
-CASES = json.loads((ROOT / "build/generated/test-cases.json").read_text(encoding="utf-8"))
+CASES = [
+    case
+    for filename in ("difficulty.json", "timed-difficulty.json", "performance.json")
+    for case in json.loads((ROOT / "build/generated" / filename).read_text(encoding="utf-8"))
+]
 
 
-@pytest.mark.parametrize(
-    "case",
-    CASES,
-    ids=lambda case: f"{case['attributes']}-{Path(case['beatmap']).stem}-{case['mods'] or 'NM'}",
-)
+@pytest.mark.parametrize("case", CASES)
 def test_calculator(case):
     with ExitStack() as stack:
         beatmap = stack.enter_context(Beatmap.from_file(str(RESOURCES / case["beatmap"])))
         ruleset = stack.enter_context(Ruleset.from_id(case["ruleset"]))
         mods = stack.enter_context(ModsCollection.create())
-        acronyms = case["mods"] or ""
-        for index in range(0, len(acronyms), 2):
-            mods.add(Mod.create(acronyms[index : index + 2]))
+        for entry in case["mods"]:
+            mod = stack.enter_context(Mod.create(entry["acronym"]))
+            setters = {
+                bool: mod.set_setting_bool,
+                int: mod.set_setting_int,
+                float: mod.set_setting_float,
+            }
+            for key, value in entry.get("settings", {}).items():
+                setters[type(value)](key, value)
+            mods.add(mod)
 
         difficulty = stack.enter_context(create_difficulty_calculator(ruleset, beatmap))
-        actual = difficulty.calculate(mods)
-        if case["score"] is not None:
-            performance = stack.enter_context(create_performance_calculator(ruleset))
-            actual = performance.calculate(
-                ruleset,
-                beatmap,
-                mods,
-                ScoreInfo(**case["score"]),
-                actual,
-            )
+        if "index" in case:
+            actual = difficulty.calculate_timed(mods)[case["index"]]
+        else:
+            actual = difficulty.calculate(mods)
+            if "score" in case:
+                performance = stack.enter_context(create_performance_calculator(ruleset))
+                actual = performance.calculate(
+                    ruleset,
+                    beatmap,
+                    mods,
+                    ScoreInfo(**case["score"]),
+                    actual,
+                )
 
-        assert type(actual) is getattr(attributes, case["attributes"])
-        values = asdict(actual)
-        assert values.keys() == case["expected"].keys()
-        for name, expected in case["expected"].items():
-            value = values[name]
-            if isinstance(value, float) and expected is not None:
-                assert value == pytest.approx(expected, rel=0, abs=0.00001), name
-            else:
-                assert value == expected, name
+        assert_attributes(asdict(actual), case["expected"])
+
+
+def assert_attributes(actual, expected):
+    assert actual.keys() == expected.keys()
+    for name, value in actual.items():
+        if isinstance(value, dict):
+            assert_attributes(value, expected[name])
+        elif isinstance(value, float) and expected[name] is not None:
+            assert value == pytest.approx(expected[name], rel=0, abs=0.00001), name
+        else:
+            assert value == expected[name], name

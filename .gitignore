@@ -45,6 +45,3 @@ src/osu_native_py/native/*
 # Nix / direnv
 .direnv/
 result
-
-tests/native-cases/bin/
-tests/native-cases/obj/

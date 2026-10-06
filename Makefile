@@ -38,7 +38,7 @@ PY_BINDINGS := $(NATIVE_DIR)/bindings.py
 
 .PHONY: all build-osu-native copy-native generate-bindings generate-test-cases build build-dist install test test-cov lint type-check clean shell uninstall
 
-all: build-osu-native copy-native install generate-bindings
+all: build-osu-native copy-native install generate-bindings generate-test-cases
 
 build-osu-native:
 	dotnet publish osu-native/osu.Native -c Release -r $(PLATFORM) -o $(OUTPUT_DIR)/generated
@@ -52,15 +52,15 @@ generate-bindings:
 
 generate-test-cases:
 	mkdir -p $(OUTPUT_DIR)/generated
-	dotnet run --project tests/native-cases -c Release -- $(OUTPUT_DIR)/generated/test-cases.json
+	dotnet run --project osu-native/osu.Native.Tests -c Release -- $(OUTPUT_DIR)/generated
 
 lint:
 	poetry run pre-commit run --all-files
 
-test: generate-test-cases
+test:
 	poetry run pytest tests/ -v
 
-test-cov: generate-test-cases
+test-cov:
 	poetry run pytest tests/ -v --cov-report=html
 	@echo "Coverage report generated in htmlcov/index.html"
 
