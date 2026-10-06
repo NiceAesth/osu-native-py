@@ -9,13 +9,17 @@ def from_native(cls, native: bindings.Native{{ model.name }}) -> {{ model.name }
 {% endmacro -%}
 
 {% macro to_native(model) -%}
+{% if model.handles %}
 def to_native(
     self,
     {% for field in model.handles %}
     {{ field.name }}: {{ field.annotation }},
     {% endfor %}
-) -> bindings.NativeScoreInfo:
-    native = bindings.NativeScoreInfo()
+) -> bindings.Native{{ model.name }}:
+{% else %}
+def to_native(self) -> bindings.Native{{ model.name }}:
+{% endif %}
+    native = bindings.Native{{ model.name }}()
     {% for field in model.handles %}
     native.{{ field.native_name }} = {{ field.name }}
     {% endfor %}
@@ -66,6 +70,10 @@ class {{ model.name }}{{ parent }}:
     {% elif model.converter == "attributes" %}
 
     {{ from_native(model) | indent(4) }}
+        {% if model.base == "DifficultyAttributes" %}
+
+    {{ to_native(model) | indent(4) }}
+        {% endif %}
     {% elif not model.own_fields and not model.docstring %}
     pass
     {% endif %}
